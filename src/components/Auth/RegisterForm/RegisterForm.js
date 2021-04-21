@@ -3,8 +3,12 @@ import { Form, Button } from 'semantic-ui-react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import './RegisterForm.scss'
+import { useMutation } from '@apollo/client'
+import { REGISTER_USER } from '../../../gql/user'
 
 export default function RegisterForm() {
+
+    const [ register ] = useMutation(REGISTER_USER);
 
     const formik = useFormik({
         initialValues: {
@@ -21,9 +25,22 @@ export default function RegisterForm() {
             password: Yup.string().required('Contraseña es obligatoria').oneOf([Yup.ref('repeatPassword')], 'Las contraseñas no coinciden'),
             repeatPassword: Yup.string().required('Contraseña obligatoria').oneOf([Yup.ref('password')], 'Las contraseñas no coinciden')
         }),
-        onSubmit: formValues => {
-            console.log('enviando por formik')
-            console.log(formValues)
+        onSubmit: async(formData) => {
+            try {
+                const newUser = formData;
+                delete newUser.repeatPassword;
+
+                const response = await register({
+                    variables: {
+                        input: newUser,
+                    }
+                })
+                
+                console.log(response)
+
+            } catch (error) {
+                console.log(error)
+            }
         }
     })
 
